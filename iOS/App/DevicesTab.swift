@@ -37,8 +37,6 @@ struct DevicesTab: View {
                             PeerRow(peer: peer, trusted: node.isTrusted(peer), online: node.isOnline(peer))
                         }
                     }
-                } header: {
-                    Text("Devices")
                 } footer: {
                     if online.isEmpty {
                         Text("Open AirBridge on your other devices. They need Wi-Fi or Bluetooth turned on.")

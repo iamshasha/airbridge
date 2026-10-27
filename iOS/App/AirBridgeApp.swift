@@ -106,8 +106,24 @@ struct OnboardingView: View {
     var onContinue: () -> Void
 
     var body: some View {
+        ScrollView {
+            content
+                .frame(maxWidth: .infinity)
+        }
+        .scrollBounceBehavior(.basedOnSize)
+        .safeAreaInset(edge: .bottom) {
+            Button(action: onContinue) {
+                Text("Continue").frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .padding()
+            .frame(maxWidth: 520)
+        }
+    }
+
+    private var content: some View {
         VStack(spacing: 28) {
-            Spacer()
             Image(systemName: "arrow.up.arrow.down.circle.fill")
                 .font(.system(size: 72))
                 .foregroundStyle(.tint)
@@ -123,20 +139,13 @@ struct OnboardingView: View {
                         "Files go straight between devices, or over the internet with a link.")
             }
             .padding(.horizontal)
-            Spacer()
             Text("Next, iOS asks to let AirBridge find devices on your local network and use Bluetooth. Both are needed to see devices nearby.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
-            Button(action: onContinue) {
-                Text("Continue").frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .padding(.horizontal)
         }
-        .padding(.vertical)
+        .padding(.vertical, 32)
         .frame(maxWidth: 520)
     }
 
@@ -150,6 +159,7 @@ struct OnboardingView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.headline)
                 Text(text).font(.subheadline).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true) // wrap, never truncate, on short screens
             }
         }
     }
