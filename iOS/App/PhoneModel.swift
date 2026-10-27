@@ -16,6 +16,8 @@ final class PhoneModel {
     private(set) var started = false
     /// Inbox items already looked at; the Received tab badge shows the rest.
     var seenInboxCount = 0
+    /// A received file to show in Quick Look (from a notification's Open action).
+    var previewURL: URL?
     /// Short confirmation banner ("Sent to Mac").
     var toast: Toast?
     /// Latest haptic-worthy event; `RootView` turns it into sensory feedback.
@@ -68,7 +70,7 @@ final class PhoneModel {
         node.onTextReceived = { [weak self] item, toClipboard in
             if toClipboard { UIPasteboard.general.string = item.text }
             self?.signal(.arrival)
-            self?.notify(title: "Text from \(item.from)", body: toClipboard ? "Copied to clipboard" : item.text)
+            if UIApplication.shared.applicationState != .active { Notifier.shared.text(item, copied: toClipboard) }
         }
         node.onTransferFinished = { [weak self] record in
             guard let self else { return }
@@ -78,7 +80,7 @@ final class PhoneModel {
                 signal(.success)
                 if record.direction == .incoming {
                     showToast("Received \(record.title)", symbol: "arrow.down.circle.fill", tint: .green)
-                    notify(title: "Received \(record.title)", body: "From \(record.peerName)")
+                    if UIApplication.shared.applicationState != .active { Notifier.shared.received(record) }
                 } else {
                     showToast("Sent to \(record.peerName)", symbol: "checkmark.circle.fill", tint: .green)
                 }
@@ -90,6 +92,18 @@ final class PhoneModel {
             }
             endBackgroundTimeIfIdle()
         }
+        // In the background: answer requests from the notification (or the lock screen).
+        let node = self.node
+        node.onPrompt = { [weak node] prompt in
+            guard UIApplication.shared.applicationState != .active else { return }
+            Notifier.shared.prompt(prompt)
+            Task { @MainActor [weak node] in
+                while node?.prompt(id: prompt.id) != nil { try? await Task.sleep(for: .milliseconds(250)) }
+                Notifier.shared.removePrompt(prompt.id)
+            }
+        }
+        Notifier.shared.register(node: node)
+        Notifier.shared.onOpen = { [weak self] url in self?.previewURL = url }
         node.onUnpairedByPeer = { [weak self] name in
             self?.signal(.warning)
             self?.showToast("\(name) unpaired this \(UIDevice.current.model)", symbol: "link.badge.plus", tint: .orange)
@@ -267,9 +281,6 @@ final class PhoneModel {
 
     private func notify(title: String, body: String) {
         guard UIApplication.shared.applicationState != .active else { return }
-        let content = UNMutableNotificationContent()
-        content.title = title
-        content.body = body
-        UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
+        Notifier.shared.simple(title: title, body: body)
     }
 }

@@ -68,7 +68,7 @@ public sealed class BluetoothService : IDisposable
     void StartScanning()
     {
         _watcher.AdvertisementFilter.Advertisement.ServiceUuids.Add(ServiceUuid);
-        _watcher.Received += (_, args) =>
+        _watcher.Received += (watcher, args) =>
         {
             // Read a device's card at most once a minute.
             var now = DateTimeOffset.Now;

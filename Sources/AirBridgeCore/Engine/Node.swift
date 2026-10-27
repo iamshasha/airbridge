@@ -20,6 +20,8 @@ public final class Node {
     /// Hooks for the platform layer (clipboard, notifications, reveal in Finder).
     @ObservationIgnored public var onTextReceived: ((ReceivedText, _ toClipboard: Bool) -> Void)?
     @ObservationIgnored public var onTransferFinished: ((TransferRecord) -> Void)?
+    /// A request needs a decision (lets apps post an actionable notification while in the background).
+    @ObservationIgnored public var onPrompt: ((Prompt) -> Void)?
     /// The named device unpaired this one (directly, or we found out when it refused a trusted request).
     @ObservationIgnored public var onUnpairedByPeer: ((String) -> Void)?
 
@@ -400,10 +402,14 @@ public final class Node {
 
     private func ask(_ hello: PeerHello, _ kind: Prompt.Kind) async -> Bool {
         await withCheckedContinuation { cont in
-            prompts.append(Prompt(peerName: hello.name, peerPlatform: hello.platform, fingerprint: hello.fingerprint,
-                                  kind: kind, continuation: cont))
+            let prompt = Prompt(peerName: hello.name, peerPlatform: hello.platform, fingerprint: hello.fingerprint,
+                                kind: kind, continuation: cont)
+            prompts.append(prompt)
+            onPrompt?(prompt)
         }
     }
+
+    public func prompt(id: UUID) -> Prompt? { prompts.first { $0.id == id } }
 
     public func respond(to prompt: Prompt, accept: Bool) {
         prompt.resolve(accept)

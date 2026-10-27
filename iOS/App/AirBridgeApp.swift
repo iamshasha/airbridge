@@ -1,4 +1,5 @@
 import AirBridgeCore
+import QuickLook
 import SwiftUI
 
 @main
@@ -43,6 +44,7 @@ struct RootView: View {
         }
         .tabViewStyle(.sidebarAdaptable)
         .overlay(alignment: .top) { ToastView(toast: model.toast) }
+        .quickLookPreview($model.previewURL)
         .modifier(RootPresentations(onboarded: $onboarded))
         // Unread badge: everything counts as seen while the Received tab is showing.
         .onChange(of: tab) { _, new in if new == .received { model.seenInboxCount = node.inbox.count } }

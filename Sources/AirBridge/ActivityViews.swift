@@ -1,9 +1,11 @@
 import AirBridgeCore
+import QuickLook
 import AppKit
 import SwiftUI
 
 struct TransfersView: View {
     @Environment(AppModel.self) private var model
+    @State private var previewURL: URL?
 
     var body: some View {
         let transfers = model.node.transfers
@@ -17,12 +19,13 @@ struct TransfersView: View {
             } else {
                 List {
                     ForEach(transfers) { record in
-                        TransferRow(record: record)
+                        TransferRow(record: record) { previewURL = $0 }
                     }
                 }
             }
         }
         .navigationTitle("Transfers")
+        .quickLookPreview($previewURL)
         .toolbar {
             ToolbarItem {
                 Button("Clear Finished") { model.node.clearFinishedTransfers() }
@@ -35,6 +38,7 @@ struct TransfersView: View {
 /// Separate view so each row observes only its own record's progress.
 struct TransferRow: View {
     let record: TransferRecord
+    var onPreview: (URL) -> Void = { _ in }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -59,7 +63,12 @@ struct TransferRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            if record.state == .done, !record.savedURLs.isEmpty {
+            if record.state == .done, let first = record.savedURLs.first {
+                Button { onPreview(first) } label: { Image(systemName: "eye") }
+                    .buttonStyle(.borderless)
+                    .font(.title3)
+                    .help("Quick Look")
+                    .accessibilityLabel("Quick Look")
                 Button {
                     NSWorkspace.shared.activateFileViewerSelecting(record.savedURLs)
                 } label: { Image(systemName: "magnifyingglass.circle") }

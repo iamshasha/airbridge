@@ -44,7 +44,7 @@ final class AppModel {
         node.onTransferFinished = { [weak self] record in
             guard record.direction == .incoming || record.state != .done else { return }
             switch record.state {
-            case .done: self?.notify(title: "Received \(record.title)", body: "From \(record.peerName)")
+            case .done: Notifier.shared.received(record)
             case .failed(let reason): self?.notify(title: "Transfer failed", body: "\(record.title): \(reason)")
             default: break
             }
@@ -52,8 +52,18 @@ final class AppModel {
         node.onUnpairedByPeer = { [weak self] name in
             self?.notify(title: "\(name) unpaired this Mac", body: "Pair again to send automatically.")
         }
+        // In the menu bar or behind other windows: answer requests from the notification.
+        let node = self.node
+        node.onPrompt = { [weak node] prompt in
+            guard !NSApp.isActive else { return }
+            Notifier.shared.prompt(prompt)
+            Task { @MainActor [weak node] in
+                while node?.prompt(id: prompt.id) != nil { try? await Task.sleep(for: .milliseconds(250)) }
+                Notifier.shared.removePrompt(prompt.id)
+            }
+        }
+        Notifier.shared.register(node: node)
         node.start()
-        requestNotificationPermission()
     }
 
     var selectedPeers: [Peer] {
@@ -191,18 +201,7 @@ final class AppModel {
 
     // MARK: notifications
 
-    private var notificationsAvailable: Bool { Bundle.main.bundleIdentifier != nil }
-
-    private func requestNotificationPermission() {
-        guard notificationsAvailable else { return }
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
-    }
-
     private func notify(title: String, body: String) {
-        guard notificationsAvailable else { return }
-        let content = UNMutableNotificationContent()
-        content.title = title
-        content.body = body
-        UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
+        Notifier.shared.simple(title: title, body: body)
     }
 }
