@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="AirBridge.App.Pages.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Page.Resources>
+        <Style x:Key="Section" TargetType="StackPanel">
+            <Setter Property="Spacing" Value="4" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+        <Style x:Key="SectionTitle" TargetType="TextBlock" BasedOn="{StaticResource BodyStrongTextBlockStyle}">
+            <Setter Property="Margin" Value="4,16,0,4" />
+        </Style>
+        <Style x:Key="Help" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlockStyle}">
+            <Setter Property="Opacity" Value="0.7" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </Page.Resources>
+
+    <ScrollViewer>
+        <StackPanel MaxWidth="760" Padding="24,8,24,32" HorizontalAlignment="Stretch">
+            <TextBlock Text="Settings" Style="{StaticResource SubtitleTextBlockStyle}" />
+
+            <TextBlock Text="This PC" Style="{StaticResource SectionTitle}" />
+            <StackPanel Style="{StaticResource Section}" Spacing="12">
+                <TextBox x:Name="NameBox" Header="Device name" LostFocus="OnNameChanged" />
+                <ComboBox x:Name="PolicyBox" Header="Receive from" SelectionChanged="OnPolicyChanged" MinWidth="280">
+                    <ComboBoxItem Content="Everyone (unknown devices are asked)" Tag="Everyone" />
+                    <ComboBoxItem Content="Paired devices only" Tag="TrustedOnly" />
+                    <ComboBoxItem Content="No one" Tag="Off" />
+                </ComboBox>
+            </StackPanel>
+
+            <TextBlock Text="Running in the background" Style="{StaticResource SectionTitle}" />
+            <StackPanel Style="{StaticResource Section}">
+                <ToggleSwitch x:Name="BackgroundSwitch" Header="Keep receiving after the window is closed" Toggled="OnBackgroundToggled" />
+                <TextBlock Style="{StaticResource Help}" Text="AirBridge stays in the notification area. Requests and received files show up as notifications you can act on." />
+                <ToggleSwitch x:Name="SignInSwitch" Header="Open AirBridge when I sign in" Toggled="OnSignInToggled" Margin="0,8,0,0" />
+            </StackPanel>
+
+            <TextBlock Text="Folders" Style="{StaticResource SectionTitle}" />
+            <StackPanel Style="{StaticResource Section}" Spacing="12">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="Save received files to" />
+                        <TextBlock x:Name="DownloadPath" Style="{StaticResource Help}" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Change" Click="OnChangeDownloads" VerticalAlignment="Center" />
+                </Grid>
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="Shared folder that paired devices can browse" />
+                        <TextBlock x:Name="SharedPath" Style="{StaticResource Help}" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Change" Click="OnChangeShared" VerticalAlignment="Center" />
+                </Grid>
+            </StackPanel>
+
+            <TextBlock Text="Finding devices and speed" Style="{StaticResource SectionTitle}" />
+            <StackPanel Style="{StaticResource Section}">
+                <ToggleSwitch x:Name="BluetoothSwitch" Header="Find devices over Bluetooth" Toggled="OnBluetoothToggled" />
+                <TextBlock Style="{StaticResource Help}" Text="Helps on networks that block device discovery, such as guest or office Wi-Fi." />
+                <NumberBox x:Name="StreamsBox" Header="Parallel connections for large files" Minimum="1" Maximum="8" SpinButtonPlacementMode="Inline"
+                           ValueChanged="OnStreamsChanged" HorizontalAlignment="Left" Margin="0,12,0,0" />
+            </StackPanel>
+
+            <TextBlock Text="Internet links" Style="{StaticResource SectionTitle}" />
+            <StackPanel Style="{StaticResource Section}" Spacing="8">
+                <TextBox x:Name="RelayBox" Header="Relay URL" PlaceholderText="https://airbridge-relay.you.workers.dev" LostFocus="OnRelayChanged" />
+                <TextBlock Style="{StaticResource Help}" Text="Used to share files with a link over the internet. The relay only forwards encrypted data. Use the same URL as on your Mac and iPhone." />
+            </StackPanel>
+
+            <TextBlock Text="AirDrop" Style="{StaticResource SectionTitle}" />
+            <StackPanel Style="{StaticResource Section}" Spacing="8">
+                <ToggleSwitch x:Name="AirDropSwitch" Header="Let Apple devices AirDrop to this PC" Toggled="OnAirDropToggled" />
+                <TextBox x:Name="AirDropInterfaceBox" Header="USB Wi-Fi adapter in WSL" PlaceholderText="wlan1" Width="200" HorizontalAlignment="Left" />
+                <TextBlock x:Name="AirDropStatus" Style="{StaticResource Help}" />
+                <TextBlock Style="{StaticResource Help}" Text="Needs WSL2 and a USB Wi-Fi adapter with monitor mode. Run windows\scripts\setup-airdrop-wsl.ps1 once to set it up. Apple devices see this PC when their AirDrop is set to Everyone." />
+            </StackPanel>
+
+            <Grid Margin="4,16,0,4">
+                <TextBlock Text="Adapters" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <Button Content="Check again" HorizontalAlignment="Right" Click="OnRefreshCapabilities" />
+            </Grid>
+            <StackPanel x:Name="CapabilityList" Style="{StaticResource Section}" Spacing="8" />
+
+            <TextBlock Text="Paired devices" Style="{StaticResource SectionTitle}" />
+            <StackPanel x:Name="TrustedList" Style="{StaticResource Section}" Spacing="8" />
+
+            <TextBlock x:Name="IdentityText" Style="{StaticResource Help}" Margin="4,16,0,0" IsTextSelectionEnabled="True" />
+        </StackPanel>
+    </ScrollViewer>
+</Page>

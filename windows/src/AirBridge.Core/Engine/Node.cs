@@ -327,6 +327,20 @@ public sealed class Node : IAsyncDisposable
         TransferFinished?.Invoke(t);
     }
 
+    /// <summary>Transfers handled outside the AirBridge protocol (the AirDrop bridge) still show up in the list.</summary>
+    public TransferInfo RecordExternalTransfer(TransferDirection direction, string peerName, string title, long size)
+    {
+        var record = AddTransfer(new TransferInfo
+        {
+            Id = Guid.NewGuid().ToString().ToUpperInvariant(), Direction = direction, PeerName = peerName, Title = title, Total = size,
+        });
+        record.Activate(() => 0);
+        return record;
+    }
+
+    public void FinishExternalTransfer(TransferInfo record, bool success, string? error) =>
+        Finish(record, success ? TransferState.Done : TransferState.Failed, error);
+
     static TransferState FailureState(Exception e) =>
         e is AirBridgeException { Kind: AirBridgeError.Declined } ? TransferState.Declined : TransferState.Failed;
 

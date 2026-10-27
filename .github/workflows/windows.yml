@@ -1,0 +1,38 @@
+name: Windows
+
+on:
+  push:
+    paths: ["windows/**", ".github/workflows/windows.yml"]
+  pull_request:
+    paths: ["windows/**"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      # Interop tests need the Swift CLI (run them on a Mac); parsing and path-safety tests run here.
+      - name: Core tests
+        run: dotnet test windows/tests/AirBridge.Core.Tests --filter "FullyQualifiedName~CapabilityParsingTests"
+
+      - name: Build app (x64)
+        run: dotnet publish windows/src/AirBridge.App -c Release -r win-x64 -p:Platform=x64 -o out/AirBridge-win-x64
+
+      - name: Build app (ARM64)
+        run: dotnet publish windows/src/AirBridge.App -c Release -r win-arm64 -p:Platform=ARM64 -o out/AirBridge-win-arm64
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AirBridge-win-x64
+          path: out/AirBridge-win-x64
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AirBridge-win-arm64
+          path: out/AirBridge-win-arm64

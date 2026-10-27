@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="AirBridge.App.Pages.DevicesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:app="using:AirBridge.App">
+
+    <Grid ColumnSpacing="0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="320" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Device list: one stable alphabetical list; devices dim in place when out of range. -->
+        <Grid Padding="16,8,8,16" RowSpacing="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock Text="Devices" Style="{StaticResource SubtitleTextBlockStyle}" Margin="4,0,0,4" />
+            <ListView
+                x:Name="DeviceList"
+                Grid.Row="1"
+                SelectionMode="Single"
+                ItemsSource="{x:Bind State.Peers}"
+                SelectionChanged="OnSelectDevice"
+                AllowDrop="False">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="app:PeerItem">
+                        <Grid ColumnSpacing="12" Padding="0,8" Opacity="{x:Bind RowOpacity, Mode=OneWay}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="{x:Bind Glyph, Mode=OneWay}" FontSize="22" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                            <StackPanel Grid.Column="1">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="{x:Bind Name, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
+                                    <FontIcon Glyph="&#xE8D7;" FontSize="12" Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                                              Visibility="{x:Bind TrustedVisibility, Mode=OneWay}" ToolTipService.ToolTip="Paired" />
+                                </StackPanel>
+                                <TextBlock Text="{x:Bind Subtitle, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7" />
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <StackPanel x:Name="SearchingHint" Grid.Row="1" Spacing="12" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <ProgressRing IsActive="True" Width="32" Height="32" />
+                <TextBlock Text="Looking for devices…" HorizontalAlignment="Center" Opacity="0.7" />
+                <TextBlock Text="Open AirBridge on your other devices." Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Center" Opacity="0.7" />
+            </StackPanel>
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
+                <Button Click="OnAddByAddress">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE710;" FontSize="14" />
+                        <TextBlock Text="Add by address" />
+                    </StackPanel>
+                </Button>
+                <Button Click="OnOpenLink" ToolTipService.ToolTip="Receive files from an AirBridge link">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE71B;" FontSize="14" />
+                        <TextBlock Text="Open link" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Detail -->
+        <Border Grid.Column="1" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="8,0,0,0"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1,1,0,0">
+            <Grid>
+                <StackPanel x:Name="EmptyDetail" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
+                    <FontIcon Glyph="&#xE701;" FontSize="40" Opacity="0.5" />
+                    <TextBlock Text="Choose a device to send files, photos or text." Opacity="0.7" />
+                </StackPanel>
+
+                <ScrollViewer x:Name="Detail" Visibility="Collapsed">
+                    <StackPanel MaxWidth="640" Padding="32,32,32,40" Spacing="24">
+                        <!-- Avatar ring: idles as a thin gradient circle, fills with progress while sending. -->
+                        <Grid HorizontalAlignment="Center" Width="132" Height="132">
+                            <Ellipse Stroke="{StaticResource BrandGradient}" StrokeThickness="3" Opacity="0.35" />
+                            <ProgressRing x:Name="SendRing" Width="132" Height="132" IsIndeterminate="False" Value="0"
+                                          Foreground="{ThemeResource AccentFillColorDefaultBrush}" Background="Transparent" Visibility="Collapsed" />
+                            <Ellipse Width="104" Height="104" Fill="{StaticResource BrandGradient}" />
+                            <FontIcon x:Name="AvatarGlyph" FontSize="44" Foreground="White" />
+                        </Grid>
+                        <StackPanel HorizontalAlignment="Center" Spacing="4">
+                            <TextBlock x:Name="DeviceName" Style="{StaticResource TitleTextBlockStyle}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+                            <TextBlock x:Name="DeviceStatus" HorizontalAlignment="Center" Opacity="0.7" />
+                            <TextBlock x:Name="TrustedLabel" Text="Paired" HorizontalAlignment="Center"
+                                       Foreground="{ThemeResource SystemFillColorSuccessBrush}" Visibility="Collapsed" />
+                        </StackPanel>
+
+                        <!-- Drop zone -->
+                        <Grid x:Name="DropZone" AllowDrop="True" Height="160" DragOver="OnDragOver" DragLeave="OnDragLeave" Drop="OnDrop"
+                              Background="Transparent">
+                            <Rectangle x:Name="DropOutline" RadiusX="12" RadiusY="12" StrokeThickness="2" StrokeDashArray="4,3"
+                                       Stroke="{ThemeResource ControlStrongStrokeColorDefaultBrush}" />
+                            <Rectangle x:Name="DropFill" RadiusX="12" RadiusY="12" Fill="{ThemeResource AccentFillColorDefaultBrush}" Opacity="0">
+                                <Rectangle.OpacityTransition><ScalarTransition Duration="0:0:0.15" /></Rectangle.OpacityTransition>
+                            </Rectangle>
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
+                                <TextBlock x:Name="DropTitle" Text="Drop files or folders here" Style="{StaticResource BodyStrongTextBlockStyle}" HorizontalAlignment="Center" />
+                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                    <Button Content="Choose files" Style="{StaticResource AccentButtonStyle}" Click="OnChooseFiles" />
+                                    <Button x:Name="ChooseFolderButton" Content="Choose folder" Click="OnChooseFolder" />
+                                    <Button x:Name="ClipboardButton" Content="Send clipboard" Click="OnSendClipboard" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock x:Name="AcceptHint" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7" HorizontalAlignment="Center" />
+
+                        <!-- Text -->
+                        <Grid x:Name="TextPanel" ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="MessageBox" PlaceholderText="Send a message or link" AcceptsReturn="False" KeyDown="OnMessageKeyDown" />
+                            <Button Grid.Column="1" Content="Send" Click="OnSendText" />
+                        </Grid>
+
+                        <!-- Not paired -->
+                        <StackPanel x:Name="PairPanel" Spacing="8">
+                            <TextBlock Text="Pair to trust this device" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock TextWrapping="Wrap" Opacity="0.8"
+                                       Text="Paired devices send and receive without asking, can keep folders in sync, and can browse each other's shared folder." />
+                            <Button Content="Pair" Click="OnPair" HorizontalAlignment="Left" />
+                        </StackPanel>
+
+                        <!-- Paired -->
+                        <StackPanel x:Name="TrustPanel" Spacing="4">
+                            <TextBlock Text="Automatic" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,0,0,4" />
+                            <ToggleSwitch x:Name="AutoAcceptSwitch" Header="Accept files automatically" Toggled="OnTrustToggle" />
+                            <ToggleSwitch x:Name="BrowseSwitch" Header="Let this device browse my shared folder" Toggled="OnTrustToggle" />
+                            <ToggleSwitch x:Name="ClipboardSwitch" Header="Copy received text to the clipboard" Toggled="OnTrustToggle" />
+                            <TextBlock Text="Folders that upload automatically" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,16,0,0" />
+                            <TextBlock TextWrapping="Wrap" Opacity="0.8" Text="New and changed files in these folders are sent to this device by themselves." />
+                            <StackPanel x:Name="SyncList" Spacing="4" />
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                                <Button Content="Add folder" Click="OnAddSyncFolder" />
+                                <Button Content="Browse shared folder" Click="OnBrowse" />
+                                <Button Content="Unpair">
+                                    <Button.Flyout>
+                                        <Flyout x:Name="UnpairFlyout">
+                                            <StackPanel Spacing="12" MaxWidth="280">
+                                                <TextBlock TextWrapping="Wrap" Text="Automatic transfers and folder sync with this device stop until you pair again." />
+                                                <Button Content="Unpair" Click="OnUnpair" Style="{StaticResource AccentButtonStyle}" />
+                                            </StackPanel>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock x:Name="FingerprintText" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.5" IsTextSelectionEnabled="True" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>
