@@ -1,0 +1,11 @@
+.build/
+build/
+relay/node_modules/
+relay/.wrangler/
+.DS_Store
+xcuserdata/
+*.xcuserstate
+DerivedData/
+.swiftpm/
+Package.resolved
+-Xcc/
