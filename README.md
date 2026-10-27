@@ -59,6 +59,15 @@ ShareExtension share the `group.app.airbridge` app group), and run. Features:
 - Haptics for arrivals, requests, pairing, success and failure; confirmation toasts; Dynamic Type up to
   the largest accessibility sizes; light and dark mode; Reduce Motion respected.
 
+To install on a connected device from the command line:
+
+```bash
+FREE=1 scripts/install-ios-device.sh <TEAM_ID>
+```
+
+`FREE=1` is for a free Personal Team. Those can't use App Groups (the share extension then keeps its own
+identity) and allow only 3 sideloaded apps per device.
+
 ## Layout
 
 | Path | What |
