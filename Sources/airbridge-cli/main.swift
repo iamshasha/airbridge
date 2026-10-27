@@ -11,9 +11,17 @@ import Foundation
 //   airbridge-cli open <link>                 receive from an internet link
 
 @MainActor
+/// Test hooks (used by the .NET interop tests): AIRBRIDGE_HOME (state folder), AIRBRIDGE_PORT,
+/// AIRBRIDGE_DOWNLOADS and AIRBRIDGE_SHARED.
 func makeNode(_ name: String, dir: URL? = nil) throws -> Node {
-    let store = dir.map { Store(directory: $0) } ?? Store(directory: Store.defaultDirectory.appendingPathComponent("cli"))
-    return try Node(store: store, defaultName: name, platform: "mac")
+    let env = ProcessInfo.processInfo.environment
+    let home = dir ?? env["AIRBRIDGE_HOME"].map { URL(fileURLWithPath: $0) }
+    let store = home.map { Store(directory: $0) } ?? Store(directory: Store.defaultDirectory.appendingPathComponent("cli"))
+    let node = try Node(store: store, defaultName: name, platform: "mac")
+    if let port = env["AIRBRIDGE_PORT"].flatMap(UInt16.init) { node.settings.port = port }
+    if let downloads = env["AIRBRIDGE_DOWNLOADS"] { node.settings.downloadFolder = downloads }
+    if let shared = env["AIRBRIDGE_SHARED"] { node.settings.sharedFolder = shared }
+    return node
 }
 
 @MainActor
@@ -30,6 +38,7 @@ func autoAccept(_ node: Node) {
     Task { @MainActor in
         while true {
             for p in node.prompts {
+                if case .pairing(let code) = p.kind { print("PAIRCODE \(code)") }
                 print("Accepting: \(p.summary)")
                 node.respond(to: p, accept: true)
             }
@@ -87,11 +96,15 @@ func run() async throws {
         let streams = args.dropFirst().first.flatMap(Int.init)
         for s in streams.map({ [$0] }) ?? [1, 4] { try await bench(sizeMB: size, streams: s) }
     case "receive":
-        let node = try makeNode(name + " (CLI)")
-        node.start()
+        let node = try makeNode(ProcessInfo.processInfo.environment["AIRBRIDGE_NAME"] ?? name + " (CLI)")
+        node.start(discovery: ProcessInfo.processInfo.environment["AIRBRIDGE_HOME"] == nil)
         print("Listening on port \(try await waitForPort(node)); files go to \(node.settings.downloadFolder)")
+        print("FINGERPRINT \(node.identity.fingerprint)")
         autoAccept(node)
-        node.onTransferFinished = { r in print("\(r.title): \(r.state) \(formatRate(r.bytes, r.finishedAt!.timeIntervalSince(r.startedAt)))") }
+        // One line per event so other implementations' tests can follow along.
+        node.onTransferFinished = { r in print("TRANSFER \(r.title) \(r.state == .done ? "done" : "\(r.state)") \(formatRate(r.bytes, r.finishedAt!.timeIntervalSince(r.startedAt)))") }
+        node.onTextReceived = { item, _ in print("TEXT \(item.from): \(item.text)") }
+        node.onUnpairedByPeer = { print("UNPAIRED \($0)") }
         while true { try await Task.sleep(nanoseconds: 1_000_000_000) }
     case "send":
         guard args.count >= 2, let colon = args[0].lastIndex(of: ":"), let port = UInt16(args[0][args[0].index(after: colon)...]) else {
@@ -128,6 +141,7 @@ func run() async throws {
     }
 }
 
+setvbuf(stdout, nil, _IOLBF, 0) // line-buffered even when piped to a test harness
 do {
     try await run()
 } catch {

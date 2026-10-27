@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AirBridge.Cli/AirBridge.Cli.csproj" />
+    <Project Path="src/AirBridge.Core/AirBridge.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AirBridge.Core.Tests/AirBridge.Core.Tests.csproj" />
+  </Folder>
+</Solution>
