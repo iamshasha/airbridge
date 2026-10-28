@@ -7,6 +7,10 @@ APP=build/AirBridge.app
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp .build/release/AirBridge "$APP/Contents/MacOS/AirBridge"
+# SwiftPM records the deployment target (14.0) as the linked SDK version, and macOS only gives
+# Liquid Glass (sidebar, title bar, toolbar) to apps built against the macOS 26+ SDK. Record the real SDK.
+vtool -set-build-version macos 14.0 "$(xcrun --sdk macosx --show-sdk-version)" -replace \
+  -output "$APP/Contents/MacOS/AirBridge" "$APP/Contents/MacOS/AirBridge"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 # App icon: render, then build every size macOS wants into an .icns.
 ICONSET=$(mktemp -d)/AppIcon.iconset

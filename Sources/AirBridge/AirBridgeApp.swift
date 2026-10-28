@@ -11,6 +11,7 @@ struct AirBridgeApp: App {
             ContentView()
                 .environment(model)
                 .frame(minWidth: 760, minHeight: 480)
+                .modifier(RegisterMainWindowOpener())
                 .onOpenURL { model.openLink($0) }
         }
         .handlesExternalEvents(matching: ["airbridge"])
@@ -46,4 +47,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
+
+    /// Dock click or opening the app again while it keeps running in the menu bar: bring the window back.
+    /// SwiftUI doesn't reliably recreate a closed WindowGroup window when a MenuBarExtra is present.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if let window = sender.windows.first(where: { $0.identifier?.rawValue.hasPrefix("main") == true }) {
+            window.makeKeyAndOrderFront(nil)
+        } else {
+            MainWindowOpener.open?()
+        }
+        sender.activate()
+        return false
+    }
+}
+
+@MainActor enum MainWindowOpener {
+    static var open: (() -> Void)?
+}
+
+/// Hands the SwiftUI `openWindow` action to the app delegate, which has no environment of its own.
+struct RegisterMainWindowOpener: ViewModifier {
+    @Environment(\.openWindow) private var openWindow
+
+    func body(content: Content) -> some View {
+        content.onAppear {
+            let openWindow = openWindow
+            MainWindowOpener.open = { openWindow(id: "main") }
+        }
+    }
 }
