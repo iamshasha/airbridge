@@ -33,7 +33,7 @@ internal static class CrashReporter
     {
         Log(error);
         if (Interlocked.Exchange(ref _shown, 1) == 1) return;
-        MessageBoxW(0, $"AirBridge ran into a problem and has to close.\n\n{error?.Message}\n\nDetails were saved to {LogPath}",
+        _ = MessageBoxW(0, $"AirBridge ran into a problem and has to close.\n\n{error?.Message}\n\nDetails were saved to {LogPath}",
             "AirBridge", 0x10 /* MB_ICONERROR */);
     }
 
