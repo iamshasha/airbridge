@@ -24,6 +24,21 @@ jobs:
       - name: Build app (x64)
         run: dotnet publish windows/src/AirBridge.App -c Release -r win-x64 -p:Platform=x64 -o out/AirBridge-win-x64
 
+      # Launch the published exe and make sure it is still running (and has a window) after 20 s.
+      - name: Smoke test (x64)
+        shell: pwsh
+        run: |
+          if (-not (Test-Path out/AirBridge-win-x64/AirBridge.pri)) { throw "AirBridge.pri missing from publish output" }
+          $p = Start-Process out/AirBridge-win-x64/AirBridge.exe -PassThru
+          Start-Sleep -Seconds 20
+          $p.Refresh()
+          $log = Join-Path $env:LOCALAPPDATA "AirBridge\crash.log"
+          if (Test-Path $log) { Get-Content $log }
+          if ($p.HasExited) { throw "AirBridge exited with code $($p.ExitCode)" }
+          "Running; window handle: $($p.MainWindowHandle)"
+          if (Test-Path $log) { throw "AirBridge logged a crash" }
+          Stop-Process -Id $p.Id -Force
+
       - name: Build app (ARM64)
         run: dotnet publish windows/src/AirBridge.App -c Release -r win-arm64 -p:Platform=ARM64 -o out/AirBridge-win-arm64
 

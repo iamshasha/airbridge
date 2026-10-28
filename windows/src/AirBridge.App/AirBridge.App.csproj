@@ -11,6 +11,8 @@
     <!-- Unpackaged, self-contained: runs as a normal .exe without installing the Windows App SDK runtime. -->
     <WindowsPackageType>None</WindowsPackageType>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <!-- Generates AirBridge.pri (compiled XAML + resources). Without it an unpackaged app exits at startup. -->
+    <EnableMsixTooling>true</EnableMsixTooling>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <Nullable>enable</Nullable>

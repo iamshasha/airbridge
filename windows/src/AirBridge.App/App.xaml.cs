@@ -6,8 +6,12 @@ public partial class App : Application
 {
     public static MainWindow? Window { get; private set; }
 
+    // Runs before InitializeComponent, so even a failure to load XAML gets reported.
+    static App() => CrashReporter.Install();
+
     public App()
     {
+        UnhandledException += (_, e) => CrashReporter.Report(e.Exception);
         InitializeComponent();
         // Windows UI sounds for invokes, focus moves and dialogs: the desktop counterpart of haptics.
         ElementSoundPlayer.State = ElementSoundPlayerState.On;
