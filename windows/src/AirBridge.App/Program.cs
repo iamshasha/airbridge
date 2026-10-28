@@ -25,7 +25,7 @@ public static class Program
         main.Activated += (_, _) =>
             App.Window?.DispatcherQueue.TryEnqueue(() => App.Window.ShowAndActivate());
 
-        Application.Start(_ =>
+        Application.Start(callback =>
         {
             SynchronizationContext.SetSynchronizationContext(
                 new DispatcherQueueSynchronizationContext(DispatcherQueue.GetForCurrentThread()));
