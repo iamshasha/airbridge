@@ -13,6 +13,8 @@
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <!-- Generates AirBridge.pri (compiled XAML + resources). Without it an unpackaged app exits at startup. -->
     <EnableMsixTooling>true</EnableMsixTooling>
+    <!-- Program.cs provides Main for single-instance handling. -->
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <Nullable>enable</Nullable>

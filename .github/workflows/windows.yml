@@ -37,6 +37,12 @@ jobs:
           if ($p.HasExited) { throw "AirBridge exited with code $($p.ExitCode)" }
           "Running; window handle: $($p.MainWindowHandle)"
           if (Test-Path $log) { throw "AirBridge logged a crash" }
+          # A second launch must hand over to the running copy and exit, not start another one.
+          $second = Start-Process out/AirBridge-win-x64/AirBridge.exe -PassThru
+          if (-not $second.WaitForExit(15000)) { throw "Second launch did not exit" }
+          if ((Get-Process AirBridge -ErrorAction SilentlyContinue).Count -ne 1) { throw "Expected exactly one AirBridge running" }
+          $p.Refresh()
+          if ($p.HasExited) { throw "First instance exited after the second launch" }
           Stop-Process -Id $p.Id -Force
 
       - name: Build app (ARM64)

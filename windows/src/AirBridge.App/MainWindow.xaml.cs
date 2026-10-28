@@ -74,6 +74,8 @@ public sealed partial class MainWindow : Window
     public void ShowAndActivate()
     {
         AppWindow.Show();
+        if (AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Minimized } presenter) presenter.Restore();
+        AppWindow.MoveInZOrderAtTop();
         Activate();
         IsForeground = true;
         AppState.Current.OnWindowForeground();
