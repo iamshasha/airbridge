@@ -39,15 +39,17 @@ struct PromptSheet: View {
                     }
                 }
                 .padding(10)
-                .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+                .glassSurface(in: RoundedRectangle(cornerRadius: 12))
                 Text("Unknown device · fingerprint \(prompt.fingerprint.prefix(12))…")
                     .font(.caption.monospaced()).foregroundStyle(.secondary)
             }
             HStack {
                 Button(isPairing ? "Don't Pair" : "Decline") { model.node.respond(to: prompt, accept: false) }
                     .keyboardShortcut(.cancelAction)
+                    .glassButtonStyle()
                 Button(isPairing ? "Pair" : "Accept") { model.node.respond(to: prompt, accept: true) }
                     .keyboardShortcut(.defaultAction)
+                    .glassButtonStyle(prominent: true)
             }
             .controlSize(.large)
         }
@@ -63,13 +65,15 @@ struct PromptSheet: View {
 struct CodeView: View {
     let code: String
     var body: some View {
-        HStack(spacing: 6) {
-            ForEach(Array(code.enumerated()), id: \.offset) { index, digit in
-                Text(String(digit))
-                    .font(.system(size: 30, weight: .semibold, design: .rounded).monospacedDigit())
-                    .frame(width: 34, height: 46)
-                    .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
-                if index == 2 { Spacer().frame(width: 8) }
+        GlassGroup(spacing: 6) {
+            HStack(spacing: 6) {
+                ForEach(Array(code.enumerated()), id: \.offset) { index, digit in
+                    Text(String(digit))
+                        .font(.system(size: 30, weight: .semibold, design: .rounded).monospacedDigit())
+                        .frame(width: 34, height: 46)
+                        .glassSurface(in: RoundedRectangle(cornerRadius: 10))
+                    if index == 2 { Spacer().frame(width: 8) }
+                }
             }
         }
         .accessibilityElement()
@@ -126,7 +130,7 @@ struct LinkShareSheet: View {
                     }
                 }
                 .padding(10)
-                .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+                .glassSurface(in: RoundedRectangle(cornerRadius: 12))
                 if !share.finished {
                     HStack(spacing: 8) {
                         ProgressView().controlSize(.small)

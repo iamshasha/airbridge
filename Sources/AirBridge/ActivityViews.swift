@@ -50,8 +50,7 @@ struct TransferRow: View {
                     Text(record.title).fontWeight(.medium).lineLimit(1)
                     if record.sync {
                         Text("SYNC").font(.caption2.weight(.bold))
-                            .padding(.horizontal, 5).padding(.vertical, 1)
-                            .background(.blue.opacity(0.15), in: Capsule())
+                            .glassBadge(.blue)
                     }
                     Spacer()
                     Text(statusText).font(.callout).foregroundStyle(.secondary).monospacedDigit()

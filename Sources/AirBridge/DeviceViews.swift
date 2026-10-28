@@ -19,16 +19,21 @@ struct DropZone: View {
             Text(subtitle).font(.callout).foregroundStyle(.secondary)
             Button("Choose Files…", action: onChoose)
                 .controlSize(.large)
+                .glassButtonStyle(prominent: targeted)
                 .padding(.top, 4)
         }
         .frame(maxWidth: .infinity, minHeight: 200)
         .padding()
-        .background {
-            RoundedRectangle(cornerRadius: 16)
-                .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8, 6]))
-                .foregroundStyle(targeted ? Color.accentColor : Color.secondary.opacity(0.4))
-                .background(RoundedRectangle(cornerRadius: 16).fill(targeted ? Color.accentColor.opacity(0.08) : .clear))
+        .glassSurface(in: RoundedRectangle(cornerRadius: 20), tint: targeted ? Color.accentColor.opacity(0.3) : nil,
+                      interactive: true)
+        .overlay {
+            RoundedRectangle(cornerRadius: 20)
+                .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [8, 6]))
+                .foregroundStyle(targeted ? Color.accentColor : Color.secondary.opacity(0.35))
+                .padding(6)
+                .allowsHitTesting(false)
         }
+        .scaleEffect(targeted ? 1.01 : 1)
         .dropDestination(for: URL.self) { urls, _ in
             onDrop(urls)
             return true
@@ -83,7 +88,9 @@ struct DeviceDetailView: View {
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
                                 Spacer()
-                                Button("Pair…") { model.pair(with: peer) }.controlSize(.large)
+                                Button("Pair…") { model.pair(with: peer) }
+                                    .controlSize(.large)
+                                    .glassButtonStyle(prominent: true)
                             }
                             .padding(6)
                         }
@@ -119,9 +126,7 @@ struct DeviceDetailView: View {
                     if trusted {
                         Label("Trusted", systemImage: "checkmark.seal.fill")
                             .font(.caption.weight(.medium))
-                            .padding(.horizontal, 8).padding(.vertical, 3)
-                            .background(.green.opacity(0.15), in: Capsule())
-                            .foregroundStyle(.green)
+                            .glassBadge(.green)
                     }
                 }
                 HStack(spacing: 12) {
@@ -217,13 +222,15 @@ struct MultiDeviceView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            HStack(spacing: -10) {
-                ForEach(peers.prefix(5)) { peer in
-                    Image(systemName: peer.platformSymbol)
-                        .font(.title)
-                        .frame(width: 52, height: 52)
-                        .background(.background, in: Circle())
-                        .overlay(Circle().stroke(.separator))
+            // Overlapping glass discs melt into one another.
+            GlassGroup(spacing: 12) {
+                HStack(spacing: -10) {
+                    ForEach(peers.prefix(5)) { peer in
+                        Image(systemName: peer.platformSymbol)
+                            .font(.title)
+                            .frame(width: 52, height: 52)
+                            .glassSurface(in: Circle())
+                    }
                 }
             }
             Text("Send to \(peers.count) devices").font(.title2.weight(.semibold))
@@ -233,6 +240,7 @@ struct MultiDeviceView: View {
                      onDrop: { model.send($0, to: peers) },
                      onChoose: { model.chooseAndSend(to: peers) })
             Button("Send Clipboard to All") { model.sendClipboard(to: peers) }
+                .glassButtonStyle()
         }
         .padding(32)
         .frame(maxWidth: 640)
