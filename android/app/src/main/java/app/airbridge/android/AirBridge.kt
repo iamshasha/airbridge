@@ -75,6 +75,7 @@ class AirBridge(private val app: Application) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val prefs = app.getSharedPreferences("app", Context.MODE_PRIVATE)
     val notifications = Notifications(app)
+    val updater = Updater(app)
 
     private val _feedback = MutableSharedFlow<Feedback>(extraBufferCapacity = 8)
     val feedback = _feedback.asSharedFlow()
@@ -140,6 +141,7 @@ class AirBridge(private val app: Application) {
         nsd.start(node.listeningPort.value ?: 0)
         if (node.settings.value.bluetoothDiscovery) bluetooth.start()
         if (keepRunning.value) AirBridgeService.start(app)
+        updater.checkInBackground()
     }
 
     /** After a permission grant, a rename or a network change. */

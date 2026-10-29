@@ -138,6 +138,7 @@ fun AppRoot(model: AirBridge, requestedTab: Tab?, onTabConsumed: () -> Unit) {
     model.pairingCode.collectAsState().value?.let { PairingCodeDialog(it) }
     model.sharedLink.collectAsState().value?.let { LinkDialog(model, it) }
     ShareTargetSheet(model)
+    if (model.updater.offer.collectAsState().value) UpdateDialog(model.updater) { model.updater.dismiss() }
     model.error.collectAsState().value?.let { message ->
         AlertDialog(
             onDismissRequest = { model.error.value = null },

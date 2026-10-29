@@ -237,6 +237,7 @@ fun SettingsScreen(model: AirBridge) {
     var name by rememberSaveable(settings.deviceName) { mutableStateOf(settings.deviceName) }
     var relay by rememberSaveable(settings.relayUrl) { mutableStateOf(settings.relayUrl) }
     var link by rememberSaveable { mutableStateOf("") }
+    var checking by remember { mutableStateOf(false) }
     ScreenScaffold("Settings") { padding ->
         LazyColumn(Modifier.fillMaxSize(), contentPadding = padding) {
             item {
@@ -290,6 +291,20 @@ fun SettingsScreen(model: AirBridge) {
                         trailingIcon = { if (link.isNotBlank()) TextButton(onClick = { model.openLink(link); link = "" }) { Text("Receive") } })
                 }
             }
+            item { Section("Updates") }
+            item {
+                var auto by remember { mutableStateOf(model.updater.checksAutomatically) }
+                SwitchRow("Check for updates automatically", "Once a day, from AirBridge's releases on GitHub", auto) {
+                    Haptics.tick(view); auto = it; model.updater.checksAutomatically = it
+                }
+            }
+            item {
+                ListItem(
+                    modifier = Modifier.clickable { checking = true; model.updater.check() },
+                    headlineContent = { Text("Check for updates") },
+                    supportingContent = { Text("You have AirBridge ${model.updater.currentVersion}") },
+                )
+            }
             item { Section("This device") }
             item {
                 ListItem(
@@ -302,6 +317,7 @@ fun SettingsScreen(model: AirBridge) {
             item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
         }
     }
+    if (checking) UpdateDialog(model.updater) { checking = false; model.updater.dismiss() }
 }
 
 @Composable
