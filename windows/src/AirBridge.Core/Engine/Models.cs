@@ -45,6 +45,8 @@ public sealed class Settings
     public bool BluetoothDiscovery { get; set; } = true;
     public List<SyncRule> SyncRules { get; set; } = [];
     public string RelayUrl { get; set; } = "";
+    /// <summary>MB/s or Mbps for every speed shown.</summary>
+    public SpeedUnit SpeedUnit { get; set; } = SpeedUnit.Bytes;
 
     static string DefaultDownloads() =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads", "AirBridge");

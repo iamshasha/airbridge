@@ -115,6 +115,32 @@ public sealed class InteropTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task SpeedTestRunsBothWaysWithTheMac()
+    {
+        await using (var swift = await SwiftPeer.StartReceiverAsync())
+        {
+            // Windows measures against the Mac.
+            var phases = new HashSet<SpeedTestPhase>();
+            var result = await _node.SpeedTestAsync(Peer.At("127.0.0.1", swift.Port), p => { lock (phases) phases.Add(p.Phase); });
+            Assert.True(result.Upload > 10e6 && result.Download > 10e6, result.ToString());
+            Assert.Equal(2, phases.Count);
+        }
+        // The Mac measures against Windows.
+        var home = Directory.CreateTempSubdirectory("ab-swift-speed-").FullName;
+        try
+        {
+            var (exit, output) = await SwiftPeer.RunAsync(home, "speedtest", $"127.0.0.1:{_node.ListeningPort}");
+            Assert.True(exit == 0, output);
+            var speeds = output.Split('\n').First(l => l.StartsWith("SPEED ", StringComparison.Ordinal)).Split(' ');
+            Assert.True(long.Parse(speeds[2], System.Globalization.CultureInfo.InvariantCulture) > 10_000_000, output);
+            Assert.True(long.Parse(speeds[4], System.Globalization.CultureInfo.InvariantCulture) > 10_000_000, output);
+            Assert.Empty(_node.Transfers);
+        }
+        finally { Directory.Delete(home, recursive: true); }
+        Assert.Equal("899 Mbps", SpeedUnit.Bits.Format(112_400_000));
+    }
+
+    [Fact]
     public async Task InternetLinksWorkBothWaysThroughTheRelay()
     {
         await using var relay = await MockRelay.StartAsync();

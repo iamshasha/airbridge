@@ -54,6 +54,8 @@ public sealed class ControlMessage
     [JsonPropertyName("paths")] public List<string>? Paths { get; set; }
     [JsonPropertyName("entries")] public List<RemoteEntry>? Entries { get; set; }
     [JsonPropertyName("reason")] public string? Reason { get; set; }
+    /// <summary><c>speedtest</c>: "upload" (client sends) or "download" (server sends).</summary>
+    [JsonPropertyName("mode")] public string? Mode { get; set; }
 
     public ControlMessage() { }
     public ControlMessage(string t) => T = t;
