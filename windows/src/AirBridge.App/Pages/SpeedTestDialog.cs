@@ -70,7 +70,7 @@ public sealed class SpeedTestDialog : ContentDialog
                 _error,
             },
         };
-        PrimaryButtonClick += (_, args) => { args.Cancel = true; _ = RunAsync(); };
+        PrimaryButtonClick += (sender, args) => { args.Cancel = true; _ = RunAsync(); };
         Opened += (_, _) => _ = RunAsync();
     }
 
