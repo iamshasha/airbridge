@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- Up arrow (left) and down arrow (right), inside the 66dp safe zone. -->
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M44,34 L56,48 L48,48 L48,74 L40,74 L40,48 L32,48 Z" />
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M64,74 L52,60 L60,60 L60,34 L68,34 L68,60 L76,60 Z" />
+</vector>

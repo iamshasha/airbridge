@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Compose draws everything; this only sets the window before the first frame. -->
+    <style name="Theme.AirBridge" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/splash</item>
+    </style>
+    <color name="splash">#F7F9FF</color>
+    <color name="brand">#1A7AFF</color>
+</resources>
