@@ -85,7 +85,7 @@ func bench(sizeMB: Int, streams: Int) async throws {
 func run() async throws {
     var args = Array(CommandLine.arguments.dropFirst())
     guard !args.isEmpty else {
-        print("usage: airbridge-cli bench [MB] [streams] | receive | send <host:port> <files…> | share <relay-url> <files…> | open <link>")
+        print("usage: airbridge-cli bench [MB] [streams] | receive | send <host:port> <files…> | text <host:port> <message> | speedtest <host:port> | share <relay-url> <files…> | open <link>")
         return
     }
     let command = args.removeFirst()
@@ -122,6 +122,15 @@ func run() async throws {
         let peer = try await node.addManualPeer(host: String(args[0][..<colon]), port: port)
         try await node.sendText(args.dropFirst().joined(separator: " "), to: peer)
         print("Sent text to \(peer.name)")
+    case "speedtest":
+        guard let target = args.first, let colon = target.lastIndex(of: ":"), let port = UInt16(target[target.index(after: colon)...]) else {
+            throw AirBridgeError.protocolViolation("usage: speedtest <host:port>")
+        }
+        let node = try makeNode(name + " (CLI)")
+        let peer = try await node.addManualPeer(host: String(target[..<colon]), port: port)
+        let result = try await node.speedTest(with: peer) { _ in }
+        print("SPEED upload \(Int(result.upload)) download \(Int(result.download))")
+        print("Upload \(SpeedUnit.bytes.format(result.upload)) (\(SpeedUnit.bits.format(result.upload))), download \(SpeedUnit.bytes.format(result.download)) (\(SpeedUnit.bits.format(result.download)))")
     case "share":
         guard args.count >= 2 else { throw AirBridgeError.protocolViolation("usage: share <relay-url> <files…>") }
         let node = try makeNode(name + " (CLI)")

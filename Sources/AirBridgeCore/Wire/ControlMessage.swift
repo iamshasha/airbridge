@@ -13,6 +13,8 @@ public struct ControlMessage: Codable, Sendable {
     public var paths: [String]?
     public var entries: [RemoteEntry]?
     public var reason: String?
+    /// `speedtest`: "upload" (client sends) or "download" (server sends).
+    public var mode: String?
 
     public init(_ t: String) { self.t = t }
 

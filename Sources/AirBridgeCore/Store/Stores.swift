@@ -48,6 +48,8 @@ public struct Settings: Codable, Sendable {
     public var syncRules: [SyncRule] = []
     /// Base URL of the internet relay (see relay/README.md), e.g. https://airbridge-relay.you.workers.dev
     public var relayURL: String = ""
+    /// MB/s or Mbps for every speed shown.
+    public var speedUnit: SpeedUnit = .bytes
 
     init(deviceName: String, downloadFolder: String, sharedFolder: String?) {
         self.deviceName = deviceName
@@ -67,6 +69,7 @@ public struct Settings: Codable, Sendable {
         bluetoothDiscovery = try c.decodeIfPresent(Bool.self, forKey: .bluetoothDiscovery) ?? true
         syncRules = try c.decodeIfPresent([SyncRule].self, forKey: .syncRules) ?? []
         relayURL = try c.decodeIfPresent(String.self, forKey: .relayURL) ?? ""
+        speedUnit = try c.decodeIfPresent(SpeedUnit.self, forKey: .speedUnit) ?? .bytes
     }
 }
 

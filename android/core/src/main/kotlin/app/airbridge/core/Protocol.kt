@@ -70,6 +70,8 @@ data class ControlMessage(
     val paths: List<String>? = null,
     val entries: List<RemoteEntry>? = null,
     val reason: String? = null,
+    /** `speedtest`: "upload" (client sends) or "download" (server sends). */
+    val mode: String? = null,
 ) {
     companion object {
         fun error(reason: String) = ControlMessage("error", reason = reason)

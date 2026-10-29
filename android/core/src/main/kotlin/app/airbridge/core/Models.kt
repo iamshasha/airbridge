@@ -41,6 +41,8 @@ data class Settings(
     val bluetoothDiscovery: Boolean = true,
     val syncRules: List<SyncRule> = emptyList(),
     val relayUrl: String = "",
+    /** MB/s or Mbps for every speed shown. */
+    val speedUnit: SpeedUnit = SpeedUnit.Bytes,
 )
 
 enum class DiscoverySource(val label: String) {

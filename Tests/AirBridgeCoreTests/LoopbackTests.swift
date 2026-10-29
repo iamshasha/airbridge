@@ -166,6 +166,19 @@ final class LoopbackTests: XCTestCase {
         XCTAssertTrue(second.items.isEmpty)
     }
 
+    func testSpeedTestMeasuresBothDirections() async throws {
+        let a = try await makeNode("Alpha"), b = try await makeNode("Beta")
+        var phases = Set<String>()
+        let result = try await a.speedTest(with: addressOf(b)) { p in phases.insert(p.phase == .upload ? "up" : "down") }
+        XCTAssertGreaterThan(result.upload, 1_000_000)
+        XCTAssertGreaterThan(result.download, 1_000_000)
+        XCTAssertEqual(phases, ["up", "down"])
+        XCTAssertTrue(b.transfers.isEmpty, "speed tests don't show up as transfers")
+        XCTAssertEqual(SpeedUnit.bytes.format(112_400_000), "112 MB/s")
+        XCTAssertEqual(SpeedUnit.bits.format(112_400_000), "899 Mbps")
+        XCTAssertEqual(SpeedUnit.bits.format(125_000_000), "1.00 Gbps")
+    }
+
     func testLinkParsing() {
         let https = Node.parseLink(URL(string: "https://relay.example.workers.dev/r/AbCdEfGhIjKlMnOpQrStUv#00ff")!)
         XCTAssertEqual(https?.room, "AbCdEfGhIjKlMnOpQrStUv")

@@ -73,6 +73,7 @@ All control messages are a single flat JSON object with a `t` field (unused fiel
 | `pull` | client → server | `paths` | Download from the shared folder. The server answers with an `offer` on the same connection; the rest proceeds as a normal transfer with the server as sender. |
 | `unpair` | client → server | | The client removed its trust in the server. The server drops its trust in the client too (if the fingerprint matches) and replies `ok`. Clients retry undelivered notices when the device is next reachable. |
 | `notPaired` | server → client | `reason` | Reply to `list`, `pull` or a `sync` offer from a device the server does not trust. The client drops its stale pairing. |
+| `speedtest` | client → server | `transferId`, `total`, `mode`, `streams` | Throughput test, at most 1 GiB. `mode` `upload`: the client sends `total` bytes of chunk frames over the stream connections and the server replies `complete` once it has counted them. `mode` `download`: the server sends `total` bytes on the streams and the client replies `complete`. The server answers `accept{streams}` first, or `error`. Chunk contents and offsets are ignored and nothing is written to disk. Older servers answer `error` "unknown request". |
 | `ok` / `error` | either | `reason` | |
 
 ## 4. Trust

@@ -82,8 +82,8 @@ class InteropTest {
             assertSameFolder(folder, File(swift.downloads, "Holiday Photos"))
 
             // Browse and pull from the Mac's shared folder.
-            writeRandom(File(swift.shared, "report.pdf"), 3 shl 20)
-            assertTrue(node.browse(peer).any { it.name == "report.pdf" && it.size == 3L shl 20 })
+            writeRandom(File(swift.shared, "report.pdf"), 24 shl 20) // > 8 MiB → parallel streams
+            assertTrue(node.browse(peer).any { it.name == "report.pdf" && it.size == 24L shl 20 })
             assertEquals(TransferState.Done, node.pull(listOf("report.pdf"), peer).state)
             assertEquals(hash(File(swift.shared, "report.pdf")), hash(File(node.downloadFolder, "report.pdf")))
 
@@ -144,6 +144,30 @@ class InteropTest {
                 swiftHome.deleteRecursively()
             }
         }
+    }
+
+    @Test
+    fun speedTestRunsBothWaysWithTheMac(): Unit = runBlocking {
+        SwiftPeer.startReceiver().use { swift ->
+            // Android measures against the Mac.
+            val phases = mutableSetOf<SpeedTestProgress.Phase>()
+            val result = node.speedTest(Peer.at("127.0.0.1", swift.port)) { phases += it.phase }
+            assertTrue(result.upload > 10e6 && result.download > 10e6, "$result")
+            assertEquals(setOf(SpeedTestProgress.Phase.Upload, SpeedTestProgress.Phase.Download), phases)
+        }
+        // The Mac measures against Android.
+        val home = Files.createTempDirectory("ab-swift-speed-").toFile()
+        try {
+            val (exit, output) = SwiftPeer.run(home, "speedtest", "127.0.0.1:${node.listeningPort.value}")
+            assertEquals(0, exit, output)
+            val speeds = output.lines().first { it.startsWith("SPEED ") }.split(' ')
+            assertTrue(speeds[2].toLong() > 10_000_000 && speeds[4].toLong() > 10_000_000, output)
+            assertTrue(node.transfers.value.isEmpty(), "speed tests don't show up as transfers")
+        } finally {
+            home.deleteRecursively()
+        }
+        assertEquals("112 MB/s", SpeedUnit.Bytes.format(112_400_000.0))
+        assertEquals("899 Mbps", SpeedUnit.Bits.format(112_400_000.0))
     }
 
     @Test
