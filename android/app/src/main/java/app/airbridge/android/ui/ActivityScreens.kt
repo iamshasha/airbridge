@@ -88,7 +88,8 @@ private fun EmptyState(icon: ImageVector, title: String, text: String) {
         Spacer(Modifier.height(16.dp))
         Text(title, style = MaterialTheme.typography.titleMediumEmphasized)
         Spacer(Modifier.height(6.dp))
-        Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
     }
 }
 

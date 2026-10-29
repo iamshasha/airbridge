@@ -158,6 +158,7 @@ private fun DeviceList(model: AirBridge, selected: String?, onSelect: (String) -
                         Text(
                             "Open AirBridge on your Mac, PC, iPhone or another Android device on the same Wi-Fi, or nearby with Bluetooth on.",
                             style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         )
                     }
                 }
