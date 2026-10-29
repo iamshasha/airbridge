@@ -37,6 +37,7 @@ struct TransfersView: View {
 
 /// Separate view so each row observes only its own record's progress.
 struct TransferRow: View {
+    @Environment(AppModel.self) private var model
     let record: TransferRecord
     var onPreview: (URL) -> Void = { _ in }
 
@@ -85,11 +86,9 @@ struct TransferRow: View {
         case .connecting: return "Connecting…"
         case .waitingForAcceptance: return record.peerName == "Link recipient" ? "Waiting for link to open…" : "Waiting for acceptance…"
         case .active:
-            let rate = ByteCountFormatter.string(fromByteCount: Int64(record.bytesPerSecond), countStyle: .file)
-            return "\(Int(record.fraction * 100))% · \(rate)/s"
+            return "\(Int(record.fraction * 100))% · \(model.node.settings.speedUnit.format(record.bytesPerSecond))"
         case .done:
-            let rate = ByteCountFormatter.string(fromByteCount: Int64(record.averageBytesPerSecond), countStyle: .file)
-            return "Done · \(rate)/s"
+            return "Done · \(model.node.settings.speedUnit.format(record.averageBytesPerSecond))"
         case .failed(let reason): return "Failed: \(reason)"
         case .declined: return "Declined"
         }

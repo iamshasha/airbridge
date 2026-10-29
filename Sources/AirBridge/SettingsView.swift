@@ -40,6 +40,10 @@ struct GeneralSettings: View {
                         in: 1 ... 8)
                 Toggle("Discover devices over Bluetooth LE", isOn: Binding(get: { node.settings.bluetoothDiscovery },
                                                                           set: { node.setBluetooth($0) }))
+                Picker("Show speeds in", selection: Binding(get: { node.settings.speedUnit }, set: { node.settings.speedUnit = $0 })) {
+                    Text("Megabytes per second (MB/s)").tag(SpeedUnit.bytes)
+                    Text("Megabits per second (Mbps)").tag(SpeedUnit.bits)
+                }
             }
         }
         .formStyle(.grouped)

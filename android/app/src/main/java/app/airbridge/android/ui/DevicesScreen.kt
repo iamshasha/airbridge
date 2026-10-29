@@ -34,6 +34,7 @@ import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.Lan
 import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.Shield
+import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.Verified
 import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.material3.Button
@@ -213,6 +214,8 @@ private fun DeviceDetail(model: AirBridge, id: String, showBack: Boolean, onBack
     val view = LocalView.current
     var composing by remember { mutableStateOf(false) }
     var browsing by remember { mutableStateOf(false) }
+    var testingSpeed by remember { mutableStateOf(false) }
+    val settings by model.node.settings.collectAsState()
     val pickFiles = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris: List<Uri> ->
         if (peer != null && uris.isNotEmpty()) model.send(uris, listOf(peer))
     }
@@ -235,7 +238,7 @@ private fun DeviceDetail(model: AirBridge, id: String, showBack: Boolean, onBack
             Spacer(Modifier.height(4.dp))
             Text(
                 when {
-                    active != null -> "${(active.fraction * 100).toInt()}% · ${formatBytes(active.bytesPerSecond)}/s"
+                    active != null -> "${(active.fraction * 100).toInt()}% · ${settings.speedUnit.format(active.bytesPerSecond)}"
                     peer.isOnline -> peer.sources.filter { it != DiscoverySource.Trusted }.joinToString(" and ") { it.label }
                     else -> "Not nearby. AirBridge will try its last known address."
                 },
@@ -265,6 +268,10 @@ private fun DeviceDetail(model: AirBridge, id: String, showBack: Boolean, onBack
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing)); Text("Clipboard")
                     }
                 }
+                OutlinedButton(onClick = { testingSpeed = true }, shapes = ButtonDefaults.shapes(), modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Rounded.Speed, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing)); Text("Test speed")
+                }
             }
             Spacer(Modifier.height(28.dp))
             val device = trustedMap[peer.id]
@@ -274,6 +281,7 @@ private fun DeviceDetail(model: AirBridge, id: String, showBack: Boolean, onBack
         }
         if (composing) ComposeTextDialog(peer.name, onDismiss = { composing = false }) { text -> composing = false; model.sendText(text, listOf(peer)) }
         if (browsing) BrowseDialog(model, peer, onDismiss = { browsing = false })
+        if (testingSpeed) SpeedTestSheet(model, peer, onDismiss = { testingSpeed = false })
     }
 }
 

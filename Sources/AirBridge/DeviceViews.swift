@@ -48,6 +48,7 @@ struct DeviceDetailView: View {
     let peerID: String
     @State private var text = ""
     @State private var browsing = false
+    @State private var testingSpeed = false
 
     var body: some View {
         let node = model.node
@@ -102,6 +103,13 @@ struct DeviceDetailView: View {
             }
             .navigationTitle(peer.name)
             .sheet(isPresented: $browsing) { RemoteBrowser(peer: peer) }
+            .sheet(isPresented: $testingSpeed) { SpeedTestView(peer: peer) }
+            .toolbar {
+                ToolbarItem {
+                    Button { testingSpeed = true } label: { Label("Test Speed", systemImage: "gauge.with.dots.needle.67percent") }
+                        .help("Measure upload and download speed with \(peer.name)")
+                }
+            }
         } else {
             ContentUnavailableView("Device not found", systemImage: "questionmark.circle")
         }

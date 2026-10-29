@@ -397,8 +397,8 @@ public sealed class TransferItem : Observable
             {
                 TransferState.Connecting => $"{who}, connecting",
                 TransferState.WaitingForAcceptance => Info.PeerName == "Link recipient" ? "Waiting for the link to be opened" : $"{who}, waiting for them to accept",
-                TransferState.Active => $"{who}, {Info.Fraction:P0} at {Format.Bytes(Info.BytesPerSecond)}/s",
-                TransferState.Done => $"{who}, {Format.Bytes(Info.Total)} at {Format.Bytes(Info.AverageBytesPerSecond)}/s",
+                TransferState.Active => $"{who}, {Info.Fraction:P0} at {AppState.Current.Node.Settings.SpeedUnit.Format(Info.BytesPerSecond)}",
+                TransferState.Done => $"{who}, {Format.Bytes(Info.Total)} at {AppState.Current.Node.Settings.SpeedUnit.Format(Info.AverageBytesPerSecond)}",
                 TransferState.Declined => $"{who}, declined",
                 _ => $"{who}, failed: {Info.Error}",
             };

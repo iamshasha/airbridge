@@ -22,6 +22,7 @@ public sealed partial class SettingsPage : Page
         SharedPath.Text = S.SharedFolder ?? "Not shared";
         BluetoothSwitch.IsOn = S.BluetoothDiscovery;
         StreamsBox.Value = S.ParallelStreams;
+        UnitButtons.SelectedIndex = S.SpeedUnit == SpeedUnit.Bits ? 1 : 0;
         RelayBox.Text = S.RelayUrl;
         AirDropSwitch.IsOn = State.AppSettings.AirDrop;
         AirDropInterfaceBox.Text = State.AppSettings.AirDropInterface;
@@ -74,6 +75,13 @@ public sealed partial class SettingsPage : Page
         if (await DevicesPage.PickFolderAsync() is not { } folder) return;
         S.SharedFolder = folder.Path;
         SharedPath.Text = folder.Path;
+        Save();
+    }
+
+    void OnUnitChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading) return;
+        S.SpeedUnit = UnitButtons.SelectedIndex == 1 ? SpeedUnit.Bits : SpeedUnit.Bytes;
         Save();
     }
 

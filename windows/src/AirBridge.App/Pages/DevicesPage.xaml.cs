@@ -265,6 +265,12 @@ public sealed partial class DevicesPage : Page
         await dialog.ShowAsync();
     }
 
+    async void OnSpeedTest(object sender, RoutedEventArgs e)
+    {
+        if (SelectedPeer is not { } peer) return;
+        await new SpeedTestDialog(peer) { XamlRoot = XamlRoot }.ShowAsync();
+    }
+
     // MARK: add by address / open link
 
     async void OnAddByAddress(object sender, RoutedEventArgs e)

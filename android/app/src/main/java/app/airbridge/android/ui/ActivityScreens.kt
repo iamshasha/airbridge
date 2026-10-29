@@ -96,6 +96,7 @@ private fun EmptyState(icon: ImageVector, title: String, text: String) {
 @Composable
 fun TransfersScreen(model: AirBridge) {
     val transfers by model.node.transfers.collectAsState()
+    val unit = model.node.settings.collectAsState().value.speedUnit
     val context = LocalContext.current
     ScreenScaffold("Transfers", actions = {
         if (transfers.any { it.isFinished }) TextButton(onClick = { model.node.clearFinishedTransfers() }) { Text("Clear finished") }
@@ -104,13 +105,13 @@ fun TransfersScreen(model: AirBridge) {
             if (transfers.isEmpty()) item {
                 EmptyState(Icons.Rounded.SwapVert, "No transfers yet", "Files you send and receive show up here, with their progress.")
             }
-            items(transfers, key = { it.id }) { t -> TransferRow(t, onOpen = { file -> runCatching { context.startActivity(model.viewIntent(file)) } }) }
+            items(transfers, key = { it.id }) { t -> TransferRow(t, unit, onOpen = { file -> runCatching { context.startActivity(model.viewIntent(file)) } }) }
         }
     }
 }
 
 @Composable
-private fun TransferRow(t: Transfer, onOpen: (File) -> Unit) {
+private fun TransferRow(t: Transfer, unit: app.airbridge.core.SpeedUnit, onOpen: (File) -> Unit) {
     val first = t.savedPaths.firstOrNull()?.let(::File)
     ListItem(
         modifier = if (first != null && first.isFile) Modifier.clickable { onOpen(first) } else Modifier,
@@ -146,7 +147,7 @@ private fun TransferRow(t: Transfer, onOpen: (File) -> Unit) {
                 when (t.state) {
                     TransferState.Connecting -> "Connecting"
                     TransferState.WaitingForAcceptance -> "Waiting"
-                    TransferState.Active -> "${formatBytes(t.bytesPerSecond)}/s"
+                    TransferState.Active -> unit.format(t.bytesPerSecond)
                     TransferState.Done -> if (first != null && first.isFile) "Open" else "Done"
                     TransferState.Failed -> "Failed"
                     TransferState.Declined -> "Declined"
@@ -257,6 +258,12 @@ fun SettingsScreen(model: AirBridge) {
                             shape = SegmentedButtonDefaults.itemShape(i, options.size),
                         ) { Text(label) }
                     }
+                }
+            }
+            item { Section("Show speeds in") }
+            item {
+                UnitSwitch(settings.speedUnit, Modifier.padding(horizontal = 16.dp).fillMaxWidth()) { new ->
+                    Haptics.tick(view); model.node.updateSettings { it.copy(speedUnit = new) }
                 }
             }
             item { Section("Background") }

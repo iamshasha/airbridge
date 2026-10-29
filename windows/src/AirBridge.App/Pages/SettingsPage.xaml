@@ -69,6 +69,10 @@
                 <TextBlock Style="{StaticResource Help}" Text="Helps on networks that block device discovery, such as guest or office Wi-Fi." />
                 <NumberBox x:Name="StreamsBox" Header="Parallel connections for large files" Minimum="1" Maximum="8" SpinButtonPlacementMode="Inline"
                            ValueChanged="OnStreamsChanged" HorizontalAlignment="Left" Margin="0,12,0,0" />
+                <RadioButtons x:Name="UnitButtons" Header="Show speeds in" SelectionChanged="OnUnitChanged" Margin="0,12,0,0">
+                    <RadioButton Content="Megabytes per second (MB/s)" Tag="Bytes" />
+                    <RadioButton Content="Megabits per second (Mbps)" Tag="Bits" />
+                </RadioButtons>
             </StackPanel>
 
             <TextBlock Text="Internet links" Style="{StaticResource SectionTitle}" />

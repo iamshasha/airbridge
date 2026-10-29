@@ -68,6 +68,7 @@ struct TransfersTab: View {
 
 /// Own view so each row observes only its own record's progress.
 struct TransferRow: View {
+    @Environment(PhoneModel.self) private var model
     let record: TransferRecord
     var onOpen: (URL) -> Void
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -148,11 +149,9 @@ struct TransferRow: View {
         case .waitingForAcceptance:
             return record.peerName == "Link recipient" ? "Waiting for the link to be opened…" : "\(who) · Waiting for acceptance…"
         case .active:
-            let rate = ByteCountFormatter.string(fromByteCount: Int64(record.bytesPerSecond), countStyle: .file)
-            return "\(who) · \(Int(record.fraction * 100))% · \(rate)/s"
+            return "\(who) · \(Int(record.fraction * 100))% · \(model.node.settings.speedUnit.format(record.bytesPerSecond))"
         case .done:
-            let rate = ByteCountFormatter.string(fromByteCount: Int64(record.averageBytesPerSecond), countStyle: .file)
-            return "\(who) · \(size) · \(rate)/s"
+            return "\(who) · \(size) · \(model.node.settings.speedUnit.format(record.averageBytesPerSecond))"
         case .failed(let reason): return "\(who) · Failed: \(reason)"
         case .declined: return "\(who) · Declined"
         }
@@ -270,6 +269,10 @@ struct SettingsTab: View {
                     Stepper("Parallel Streams: \(node.settings.parallelStreams)",
                             value: Binding(get: { node.settings.parallelStreams }, set: { node.settings.parallelStreams = $0 }),
                             in: 1 ... 8)
+                    Picker("Show Speeds In", selection: Binding(get: { node.settings.speedUnit }, set: { node.settings.speedUnit = $0 })) {
+                        Text("MB/s").tag(SpeedUnit.bytes)
+                        Text("Mbps").tag(SpeedUnit.bits)
+                    }
                 } header: {
                     Text("Discovery & Speed")
                 }

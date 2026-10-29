@@ -129,6 +129,7 @@ struct DeviceDetailView: View {
     @State private var browsing = false
     @State private var confirmUnpair = false
     @State private var loadingPhotos = false
+    @State private var testingSpeed = false
 
     var body: some View {
         let node = model.node
@@ -165,6 +166,7 @@ struct DeviceDetailView: View {
                     Button { importingFiles = true } label: { ActionLabel(title: "Files", symbol: "folder") }
                     Button { model.sendClipboard(to: peer) } label: { ActionLabel(title: "Clipboard", symbol: "doc.on.clipboard") }
                     Button { composingText = true } label: { ActionLabel(title: "Text or Link", symbol: "text.bubble") }
+                    Button { testingSpeed = true } label: { ActionLabel(title: "Test Speed", symbol: "gauge.with.dots.needle.67percent") }
                 } header: {
                     Text("Send")
                 } footer: {
@@ -220,6 +222,7 @@ struct DeviceDetailView: View {
             }
             .sheet(isPresented: $composingText) { ComposeTextSheet(peer: peer) }
             .sheet(isPresented: $browsing) { RemoteBrowser(peer: peer) }
+            .sheet(isPresented: $testingSpeed) { SpeedTestView(peer: peer) }
             .confirmationDialog("Unpair \(peer.name)?", isPresented: $confirmUnpair, titleVisibility: .visible) {
                 Button("Unpair", role: .destructive) { node.unpair(peer.id) }
             } message: {
