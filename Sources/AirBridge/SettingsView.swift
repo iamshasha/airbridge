@@ -8,6 +8,7 @@ struct SettingsView: View {
             GeneralSettings().tabItem { Label("General", systemImage: "gearshape") }
             InternetSettings().tabItem { Label("Internet", systemImage: "globe") }
             DevicesSettings().tabItem { Label("Devices", systemImage: "checkmark.seal") }
+            UpdateSettings().tabItem { Label("Updates", systemImage: "arrow.down.circle") }
         }
         .frame(width: 560, height: 420)
     }
@@ -129,5 +130,31 @@ struct DevicesSettings: View {
             }
         }
         .padding()
+    }
+}
+
+struct UpdateSettings: View {
+    @Environment(Updater.self) private var updater
+    @State private var checking = false
+
+    var body: some View {
+        Form {
+            Section {
+                LabeledContent("Version", value: updater.currentVersion)
+                Toggle("Check for updates automatically", isOn: Binding(get: { updater.checksAutomatically },
+                                                                       set: { updater.checksAutomatically = $0 }))
+                LabeledContent("Last checked") {
+                    Text(updater.lastChecked.map { $0.formatted(.relative(presentation: .named)) } ?? "Never")
+                }
+                Button("Check Now") {
+                    checking = true
+                    updater.check()
+                }
+            } footer: {
+                Text("Updates come from AirBridge's releases on GitHub. Installing replaces the app and reopens it.")
+            }
+        }
+        .formStyle(.grouped)
+        .sheet(isPresented: $checking) { UpdateView().environment(updater) }
     }
 }

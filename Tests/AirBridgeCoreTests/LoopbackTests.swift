@@ -179,6 +179,23 @@ final class LoopbackTests: XCTestCase {
         XCTAssertEqual(SpeedUnit.bits.format(125_000_000), "1.00 Gbps")
     }
 
+    func testUpdateVersionsAndReleaseParsing() throws {
+        XCTAssertTrue(UpdateChecker.isNewer("v0.10.0", than: "0.9.2"))
+        XCTAssertTrue(UpdateChecker.isNewer("v1.0", than: "0.9.9"))
+        XCTAssertFalse(UpdateChecker.isNewer("v0.3.0", than: "0.3.0"))
+        XCTAssertFalse(UpdateChecker.isNewer("v0.2.0", than: "0.3.0"))
+        let json = Data("""
+        {"tag_name":"v0.4.0","body":"Faster","html_url":"https://github.com/iamshasha/airbridge/releases/tag/v0.4.0","draft":false,"prerelease":false,
+         "assets":[{"name":"AirBridge-macOS.zip","size":1200,"browser_download_url":"https://github.com/x/AirBridge-macOS.zip"}]}
+        """.utf8)
+        let update = try XCTUnwrap(UpdateChecker.parse(json, current: "0.3.0", asset: "AirBridge-macOS.zip"))
+        XCTAssertEqual(update.version, "0.4.0")
+        XCTAssertEqual(update.downloadSize, 1200)
+        XCTAssertNil(try UpdateChecker.parse(json, current: "0.4.0", asset: "AirBridge-macOS.zip"))
+        XCTAssertTrue(UpdateChecker.isDue(lastCheck: nil))
+        XCTAssertFalse(UpdateChecker.isDue(lastCheck: .now.addingTimeInterval(-3600)))
+    }
+
     func testLinkParsing() {
         let https = Node.parseLink(URL(string: "https://relay.example.workers.dev/r/AbCdEfGhIjKlMnOpQrStUv#00ff")!)
         XCTAssertEqual(https?.room, "AbCdEfGhIjKlMnOpQrStUv")

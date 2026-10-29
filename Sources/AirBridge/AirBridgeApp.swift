@@ -5,17 +5,27 @@ import SwiftUI
 struct AirBridgeApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var model = AppModel()
+    @State private var updater = Updater()
 
     var body: some Scene {
         WindowGroup("AirBridge", id: "main") {
             ContentView()
                 .environment(model)
+                .environment(updater)
+                .sheet(isPresented: $updater.showing) { UpdateView().environment(updater) }
+                .task { updater.checkInBackground() }
                 .frame(minWidth: 760, minHeight: 480)
                 .modifier(RegisterMainWindowOpener())
                 .onOpenURL { model.openLink($0) }
         }
         .handlesExternalEvents(matching: ["airbridge"])
         .commands {
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") {
+                    updater.showing = true
+                    updater.check()
+                }
+            }
             CommandGroup(after: .newItem) {
                 Button("Send Files…") { model.chooseAndSend(to: model.selectedPeers) }
                     .keyboardShortcut("o")
@@ -30,6 +40,7 @@ struct AirBridgeApp: App {
         Settings {
             SettingsView()
                 .environment(model)
+                .environment(updater)
         }
 
         MenuBarExtra("AirBridge", systemImage: "arrow.up.arrow.down.circle") {
