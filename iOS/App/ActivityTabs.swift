@@ -290,6 +290,30 @@ struct SettingsTab: View {
                     Text("The relay used to share links over the internet. It only forwards encrypted data. Use the same URL as on your Mac.")
                 }
 
+                Section {
+                    LabeledContent("Version", value: UpdateChecker.currentVersion)
+                    if let update = model.update {
+                        Link(destination: update.pageURL) {
+                            Label("AirBridge \(update.version) is available", systemImage: "arrow.down.circle.fill")
+                        }
+                    }
+                    Button {
+                        model.checkForUpdate()
+                    } label: {
+                        HStack {
+                            Text("Check for Updates")
+                            Spacer()
+                            if model.checkingForUpdate { ProgressView() }
+                            else if model.upToDate { Label("Up to date", systemImage: "checkmark").labelStyle(.titleAndIcon).foregroundStyle(.secondary) }
+                        }
+                    }
+                    .disabled(model.checkingForUpdate)
+                } header: {
+                    Text("Updates")
+                } footer: {
+                    Text("New versions are published on GitHub. On iPhone and iPad, install them again with Xcode or the install script.")
+                }
+
                 Section("Trusted Devices") {
                     if devices.isEmpty {
                         Text("Pair with a device from its page to trust it.").foregroundStyle(.secondary)

@@ -22,6 +22,10 @@ final class PhoneModel {
     var toast: Toast?
     /// Latest haptic-worthy event; `RootView` turns it into sensory feedback.
     var feedback: Feedback?
+    /// A newer release on GitHub (iOS can't install it in place; Settings links to it).
+    var update: AppUpdate?
+    var checkingForUpdate = false
+    var upToDate = false
 
     struct Toast: Identifiable, Equatable {
         let id = UUID()
@@ -115,6 +119,37 @@ final class PhoneModel {
         guard !started else { return }
         started = true
         node.start()
+        checkForUpdateInBackground()
+    }
+
+    // MARK: updates
+
+    /// Once a day at launch, quietly; a banner mentions a new version.
+    func checkForUpdateInBackground() {
+        let last = UserDefaults.standard.object(forKey: "lastUpdateCheck") as? Date
+        guard UpdateChecker.isDue(lastCheck: last) else { return }
+        Task {
+            guard let found = try? await UpdateChecker.check(asset: nil) else { return }
+            UserDefaults.standard.set(Date.now, forKey: "lastUpdateCheck")
+            update = found
+            showToast("AirBridge \(found.version) is available", symbol: "arrow.down.circle.fill", tint: .accentColor)
+        }
+    }
+
+    func checkForUpdate() {
+        checkingForUpdate = true
+        upToDate = false
+        Task {
+            defer { checkingForUpdate = false }
+            do {
+                update = try await UpdateChecker.check(asset: nil)
+                upToDate = update == nil
+                UserDefaults.standard.set(Date.now, forKey: "lastUpdateCheck")
+                signal(update == nil ? .success : .arrival)
+            } catch {
+                report(error, context: "Checking for updates")
+            }
+        }
     }
 
     // MARK: feedback

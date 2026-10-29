@@ -12,7 +12,7 @@ DEVICE=${2:-$(xcrun devicectl list devices 2>/dev/null | awk '/physical/ && /ava
 DD=$(mktemp -d)
 EXTRA=()
 [ "${FREE:-0}" = 1 ] && EXTRA+=(CODE_SIGN_ENTITLEMENTS=)
-xcodebuild -project AirBridge.xcodeproj -scheme AirBridge -destination "id=$DEVICE" -configuration Release \
+xcodebuild -project AirBridge.xcodeproj -scheme "AirBridge iOS" -destination "id=$DEVICE" -configuration Release \
   -derivedDataPath "$DD" -allowProvisioningUpdates DEVELOPMENT_TEAM="$TEAM" "${EXTRA[@]}" build -quiet
 xcrun devicectl device install app --device "$DEVICE" "$DD/Build/Products/Release-iphoneos/AirBridge.app"
 xcrun devicectl device process launch --device "$DEVICE" app.airbridge.ios || \
