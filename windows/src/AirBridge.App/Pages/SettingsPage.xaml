@@ -95,6 +95,14 @@
             </Grid>
             <StackPanel x:Name="CapabilityList" Style="{StaticResource Section}" Spacing="8" />
 
+            <TextBlock Text="Updates" Style="{StaticResource SectionTitle}" />
+            <StackPanel Style="{StaticResource Section}" Spacing="8">
+                <TextBlock x:Name="VersionText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <ToggleSwitch x:Name="UpdatesSwitch" Header="Check for updates automatically" Toggled="OnUpdatesToggled" />
+                <Button Content="Check for updates" Click="OnCheckForUpdates" />
+                <TextBlock Style="{StaticResource Help}" Text="New versions come from AirBridge's releases on GitHub. Installing replaces the files in this folder and restarts AirBridge." />
+            </StackPanel>
+
             <TextBlock Text="Paired devices" Style="{StaticResource SectionTitle}" />
             <StackPanel x:Name="TrustedList" Style="{StaticResource Section}" Spacing="8" />
 

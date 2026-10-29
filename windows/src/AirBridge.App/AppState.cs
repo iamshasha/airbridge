@@ -18,6 +18,9 @@ public sealed class AppSettings
     public bool OpenAtSignIn { get; set; }
     public bool AirDrop { get; set; }
     public string AirDropInterface { get; set; } = "wlan1";
+    /// <summary>Check GitHub Releases once a day at launch.</summary>
+    public bool CheckForUpdates { get; set; } = true;
+    public DateTimeOffset? LastUpdateCheck { get; set; }
 }
 
 /// <summary>

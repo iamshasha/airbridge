@@ -25,5 +25,6 @@ public partial class App : Application
         if (Environment.GetCommandLineArgs().Contains("--background")) Window.StartHidden();
         else Window.Activate();
         await AppState.Current.StartAsync(Window.DispatcherQueue);
+        await Window.CheckForUpdatesInBackgroundAsync();
     }
 }

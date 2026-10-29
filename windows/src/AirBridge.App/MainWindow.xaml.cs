@@ -81,6 +81,35 @@ public sealed partial class MainWindow : Window
         AppState.Current.OnWindowForeground();
     }
 
+    /// <summary>Quits so the updater script can replace the files.</summary>
+    public void QuitForUpdate() => Quit();
+
+    /// <summary>At launch, once a day: offer a newer release (a dialog when visible, a notification otherwise).</summary>
+    public async Task CheckForUpdatesInBackgroundAsync()
+    {
+        var settings = AppState.Current.AppSettings;
+        // Test hook (used by CI): AIRBRIDGE_UPDATE_TEST=1 installs whatever is newer, without any clicks.
+        if (Environment.GetEnvironmentVariable("AIRBRIDGE_UPDATE_TEST") == "1")
+        {
+            if (await UpdateChecker.CheckAsync(UpdateChecker.CurrentVersion, Pages.UpdateDialog.Asset) is { DownloadUrl: not null } found)
+                await Pages.UpdateDialog.DownloadAndRelaunchAsync(found, null);
+            return;
+        }
+        if (!settings.CheckForUpdates || !UpdateChecker.IsDue(settings.LastUpdateCheck)) return;
+        AppUpdate? update;
+        try { update = await UpdateChecker.CheckAsync(UpdateChecker.CurrentVersion, Pages.UpdateDialog.Asset); }
+        catch (Exception e) when (e is HttpRequestException or TaskCanceledException or Protocol.AirBridgeException) { return; }
+        settings.LastUpdateCheck = DateTimeOffset.Now;
+        AppState.Current.SaveAppSettings();
+        if (update is null) return;
+        if (IsForeground && AppWindow.IsVisible)
+        {
+            try { await new Pages.UpdateDialog(update) { XamlRoot = Content.XamlRoot }.ShowAsync(); }
+            catch (System.Runtime.InteropServices.COMException) { /* another dialog is open; Settings still offers it */ }
+        }
+        else Notifications.Simple($"AirBridge {update.Version} is available", "Open AirBridge and choose Settings › Check for updates to install it.");
+    }
+
     void Quit()
     {
         _quitting = true;

@@ -45,6 +45,29 @@ jobs:
           if ($p.HasExited) { throw "First instance exited after the second launch" }
           Stop-Process -Id $p.Id -Force
 
+      # Self-update: a build labelled 0.0.1 must replace itself with the latest GitHub release and restart.
+      - name: Update test (x64)
+        shell: pwsh
+        run: |
+          dotnet publish windows/src/AirBridge.App -c Release -r win-x64 -p:Platform=x64 -p:Version=0.0.1 -o out/update-test
+          $exe = (Resolve-Path out/update-test/AirBridge.exe).Path
+          $before = (Get-Item $exe).VersionInfo.ProductVersion
+          $env:AIRBRIDGE_UPDATE_TEST = "1"
+          Start-Process $exe
+          $env:AIRBRIDGE_UPDATE_TEST = $null
+          $deadline = (Get-Date).AddMinutes(4)
+          do {
+            Start-Sleep -Seconds 3
+            $after = (Get-Item $exe).VersionInfo.ProductVersion
+          } until ($after -ne $before -or (Get-Date) -gt $deadline)
+          "Before: $before, after: $after"
+          if ($after -eq $before) { throw "AirBridge did not update itself" }
+          Start-Sleep -Seconds 8
+          $running = Get-Process AirBridge -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $exe }
+          if (-not $running) { throw "The updated AirBridge did not restart" }
+          "Restarted: $($running.Id)"
+          $running | Stop-Process -Force
+
       - name: Build app (ARM64)
         run: dotnet publish windows/src/AirBridge.App -c Release -r win-arm64 -p:Platform=ARM64 -o out/AirBridge-win-arm64
 

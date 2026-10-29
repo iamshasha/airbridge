@@ -24,6 +24,8 @@ public sealed partial class SettingsPage : Page
         StreamsBox.Value = S.ParallelStreams;
         UnitButtons.SelectedIndex = S.SpeedUnit == SpeedUnit.Bits ? 1 : 0;
         RelayBox.Text = S.RelayUrl;
+        VersionText.Text = $"AirBridge {UpdateChecker.CurrentVersion}";
+        UpdatesSwitch.IsOn = State.AppSettings.CheckForUpdates;
         AirDropSwitch.IsOn = State.AppSettings.AirDrop;
         AirDropInterfaceBox.Text = State.AppSettings.AirDropInterface;
         IdentityText.Text = $"This PC's fingerprint: {State.Node.Identity.Fingerprint}. Listening on port {State.Node.ListeningPort}.";
@@ -35,6 +37,16 @@ public sealed partial class SettingsPage : Page
     }
 
     void Save() => State.Node.SaveSettings();
+
+    void OnUpdatesToggled(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        State.AppSettings.CheckForUpdates = UpdatesSwitch.IsOn;
+        State.SaveAppSettings();
+    }
+
+    async void OnCheckForUpdates(object sender, RoutedEventArgs e) =>
+        await new UpdateDialog { XamlRoot = XamlRoot }.ShowAsync();
 
     void OnNameChanged(object sender, RoutedEventArgs e)
     {
